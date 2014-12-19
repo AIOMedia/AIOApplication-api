@@ -1,0 +1,31 @@
+{
+  "name": "aiomedia-api",
+  "version": "0.0.1",
+  "description": "Media and Home Improvement management built on Node.js",
+  "homepage": "https://github.com/AIOMedia/AIOApplication-api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AIOMedia/AIOApplication-api.git"
+  },
+  "keywords": [
+    "nodejs",
+    "api",
+    "home-improvement",
+    "media"
+  ],
+  "author": "Axel Penin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AIOMedia/AIOApplication-api/issues"
+  },
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "body-parser": "~1.10.0",
+    "debug": "~2.1.0",
+    "express": "~4.10.2",
+    "mongoose": "~3.8.19",
+    "morgan": "~1.5.0"
+  }
+}
