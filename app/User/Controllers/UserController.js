@@ -20,12 +20,11 @@ var UserController = {
     list: function (req, res) {
         return User.find(function (err, users) {
             if (!err) {
-                return res.json(new Response.Data.Collection(users));
+                return new Response.Data.Collection(res, users);
             } else {
-                res.statusCode = 500;
-                console.log('Internal error(%d): %s' ,res.statusCode, err.message);
+                console.log('User error : %s', err.message);
 
-                return res.json(new Response.Error.Internal());
+                return new Response.Error.Internal(res);
             }
         });
     },
@@ -38,18 +37,15 @@ var UserController = {
     get: function (req, res) {
         return User.findById(req.params.id, function (err, user) {
             if (!user) {
-                res.statusCode = 404;
-
-                return res.json(new Response.Data.NotFound('User Not Found'));
+                return new Response.Data.NotFound(res, 'User Not Found');
             }
 
             if (!err) {
-                return res.json({ data: user });
+                return new Response.Data.Item(res, user);
             } else {
-                res.statusCode = 500;
-                console.log('Internal error(%d): %s', res.statusCode, err.message);
+                console.log('User error : %s', err.message);
 
-                return res.json(new Response.Error.Internal());
+                return new Response.Error.Internal(res);
             }
         });
     },
@@ -69,16 +65,11 @@ var UserController = {
 
         return user.save(function (err) {
             if (err) {
-                console.log('Error while saving user : ' + err);
+                console.log('User error : %s', err);
 
-                return res.json({ error: err });
+                return new Response.Error.Internal(res, 'User Not Saved');
             } else {
-                console.log('User Created');
-                res.statusCode = 201;
-
-                console.log(user.firstName);
-
-                return res.json({ data: user });
+                return new Response.Data.Created(res, user, 'User Created');
             }
         });
     },
@@ -92,8 +83,7 @@ var UserController = {
         return User.findById(req.params.id, function (err, user) {
             // User not found
             if (!user) {
-                res.statusCode = 404;
-                return res.json({ error: 'User Not Found' });
+                return new Response.Data.NotFound(res, 'User Not Found');
             }
 
             // Update User properties
@@ -147,13 +137,10 @@ var UserController = {
 
             return user.remove(function (err) {
                 if (!err) {
-                    console.log('Removed User');
-
                     return res.json({ status: 'OK' });
                 } else {
-                    res.statusCode = 500;
-
                     console.log('Internal error(%d): %s', res.statusCode, err.message);
+
                     return res.json(new Response.Error.Internal());
                 }
             })

@@ -14,50 +14,46 @@ var Task = require('../Models/Task');
 var TaskController = {
     /**
      * List all Tasks
-     * @param {Object} req HTTP request object.
-     * @param {Object} res HTTP response object.
+     * @param {Object} req HTTP request object
+     * @param {Object} res HTTP response object
      */
     list: function (req, res) {
         return Task.find(function (err, tasks) {
             if (!err) {
-                return res.json(new Response.Data.Collection(tasks));
+                return new Response.Data.Collection(res, tasks);
             } else {
-                res.statusCode = 500;
-                console.log('Internal error(%d): %s' ,res.statusCode, err.message);
+                console.log('Task error : %s' , err.message);
 
-                return res.json({ error: 'Internal Server Error' });
+                return new Response.Error.Server(res);
             }
         });
     },
 
     /**
      * Get a specific Task
-     * @param {Object} req HTTP request object.
-     * @param {Object} res HTTP response object.
+     * @param {Object} req HTTP request object
+     * @param {Object} res HTTP response object
      */
     get: function (req, res) {
         return Task.findById(req.params.id, function (err, task) {
-            if (!tasks) {
-                res.statusCode = 404;
-
-                return res.json({ error: 'Task Not Found' });
+            if (!task) {
+                return new Response.Data.NotFound(res, 'Task Not Found');
             }
 
             if (!err) {
-                return res.json({ data: task });
+                return new Response.Data.Item(res, task);
             } else {
-                res.statusCode = 500;
-                console.log('Internal error(%d): %s', res.statusCode, err.message);
+                console.log('Task error : %s', err.message);
 
-                return res.send({ error: 'Internal Server Error' });
+                return new Response.Error.Server(res);
             }
         });
     },
 
     /**
      * Create a new Task
-     * @param {Object} req HTTP request object.
-     * @param {Object} res HTTP response object.
+     * @param {Object} req HTTP request object
+     * @param {Object} res HTTP response object
      */
     create: function (req, res) {
         var task = new Task({
@@ -83,8 +79,8 @@ var TaskController = {
 
     /**
      * Update an existing Task
-     * @param {Object} req HTTP request object.
-     * @param {Object} res HTTP response object.
+     * @param {Object} req HTTP request object
+     * @param {Object} res HTTP response object
      */
     update: function (req, res) {
         return Task.findById(req.params.id, function (err, task) {
@@ -132,15 +128,13 @@ var TaskController = {
 
     /**
      * Delete an existing Task
-     * @param {Object} req HTTP request object.
-     * @param {Object} res HTTP response object.
+     * @param {Object} req HTTP request object
+     * @param {Object} res HTTP response object
      */
     delete: function (req, res) {
         return Task.findById(req.params.id, function (err, task) {
-            if(!task) {
-                res.statusCode = 404;
-
-                return res.json({ error: 'Task Not found' });
+            if (!task) {
+                return new Response.Data.NotFound(res, 'Task Not Found');
             }
 
             return task.remove(function (err) {

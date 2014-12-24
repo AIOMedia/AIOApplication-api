@@ -6,68 +6,96 @@
  */
 var Response = {
     /**
-     * Default Response types of the API with their HTTP status code and default message
+     * Default Response status of the API with their HTTP status code and default message
      */
-    types: {
+    status: {
         // All it's fine, and if there are data, it will be returned
-        OK:           { status: 200, message: 'OK' },
+        OK:           { code: 200, message: 'OK' },
         // There is no data to return for this request
-        NO_RESULT:    { status: 200, message: 'No result' },
+        NO_RESULT:    { code: 200, message: 'No result' },
         // Something has been updated and all it's OK, we will return the updated data
-        UPDATED:      { status: 200, message: 'Updated' },
+        UPDATED:      { code: 200, message: 'Updated' },
         // Something has been created and all it's OK, we will return the created data
-        CREATED:      { status: 201, message: 'Created' },
+        CREATED:      { code: 201, message: 'Created' },
         // Accepted but is being processed async
-        ACCEPTED:     { status: 202, message: 'Accepted' },
+        ACCEPTED:     { code: 202, message: 'Accepted' },
         // Bad request (syntax)
-        BAD_REQUEST:  { status: 400, message: 'Bad Request' },
+        BAD_REQUEST:  { code: 400, message: 'Bad Request' },
         // Invalid data have been posted
-        INVALID:      { status: 400, message: 'Invalid Data' },
+        INVALID:      { code: 400, message: 'Invalid Data' },
         // The requested URL or the resource can not be found
-        NOT_FOUND:    { status: 404, message: 'Not found' },
+        NOT_FOUND:    { code: 404, message: 'Not found' },
         // No current user and there should be
-        UNAUTHORIZED: { status: 401, message: 'Unauthorized' },
+        UNAUTHORIZED: { code: 401, message: 'Unauthorized' },
         // The current user is forbidden from accessing this data
-        FORBIDDEN:    { status: 403, message: 'Forbidden' },
+        FORBIDDEN:    { code: 403, message: 'Forbidden' },
         // Something goes wrong with the server
-        SERVER_ERROR: { status: 500, message: 'Internal Server Error' },
+        SERVER_ERROR: { code: 500, message: 'Internal Server Error' },
         // API is not here right now, please try again later
-        UNAVAILABLE:  { status: 503, message: 'Service Unavailable' }
+        UNAVAILABLE:  { code: 503, message: 'Service Unavailable' }
     },
 
     /**
      * Create a basic response containing a status and message
      *
-     * @param {{}}    type    - a valid type listed in Response.types OR an object containing a status (default: 200) and message property
-     * @param {mixed} message - a custom message
-     * @returns {{}}
+     * @param {object}    response  - the default HTTP response passed through NodeJS middleware
+     * @param {object}    status    - a status type listed in Response.types OR an object containing a code (default: 200) and message property
+     * @param {*}         [message] - a custom message
+     *
+     * @returns {object}
      */
-    createResponse: function (type, message) {
-        if (!type) {
-            type = this.types.OK;
+    createResponse: function (response, status, message) {
+        if (!status) {
+            status = this.types.OK;
         }
 
-        var response = {
-            status: type.status ? type.status : 200,
-            message: message ? message : (type.message ? type.message : '')
-        };
+        // Create body of the response
+        var res = this.buildResponseBody(status, message);
 
-        return response;
+        // Set Node response status
+        response.statusCode =  res.status.code;
+
+        return response.json(res);
     },
 
     /**
      * Create a response containing a status
      *
-     * @param type
-     * @param data
-     * @param message
-     * @returns {{}}
+     * @param {object}           response  - the default HTTP response passed through NodeJS middleware
+     * @param {object}           status    - a status type listed in Response.types OR an object containing a code (default: 200) and message property
+     * @param {array|object}     data      - a data item or collection
+     * @param {*}                [message] - a custom message
+     *
+     * @returns {object}
      */
-    createDataResponse: function (type, data, message) {
-        var response = this.createResponse(type, message);
+    createDataResponse: function (response, status, data, message) {
+        if (!status) {
+            status = this.types.OK;
+        }
 
-        // Add data to response
-        response.data = data ? data : [];
+        // Create body of the response
+        var res = this.buildResponseBody(status, message, data ? data : []);
+
+        // Set Node response status
+        response.statusCode =  res.status.code;
+
+        return response.json(res);
+    },
+
+    /**
+     * Create the body of the response
+     */
+    buildResponseBody: function (status, message, data) {
+        var response = {
+            status: {
+                code:    status.code ? status.code : 200,
+                message: message ? message : (status.message ? status.message : '')
+            }
+        };
+
+        if (data) {
+            response.data = data;
+        }
 
         return response;
     },
@@ -76,22 +104,26 @@ var Response = {
      * Default OK function
      *
      * @constructor
-     * @param   {*}  [message] - a custom message
-     * @returns {{}}           - the response object containing status code and message
+     * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+     * @param   {*}      [message] - a custom message
+     *
+     * @returns {object}           - the response object containing status code and message
      */
-    Default: function (message) {
-        return Response.createResponse(Response.types.OK, message);
+    Default: function (response, message) {
+        return Response.createResponse(response, Response.status.OK, message);
     },
 
     /**
      * Accepted Response
      *
      * @constructor
-     * @param   {*}  [message] - a custom message
-     * @returns {{}}           - the response object containing status code and message
+     * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+     * @param   {*}      [message] - a custom message
+     *
+     * @returns {object}           - the response object containing status code and message
      */
-    Accepted: function (message) {
-        return Response.createResponse(Response.types.ACCEPTED, message);
+    Accepted: function (response, message) {
+        return Response.createResponse(response, Response.status.ACCEPTED, message);
     },
 
     /**
@@ -105,70 +137,96 @@ var Response = {
          * Data Item Response
          *
          * @constructor
-         * @param   {{}} data      - the data item
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code, message and the item
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {object} data      - the data item
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code, message and the item
          */
-        Item: function (data, message) {
-            return Response.createDataResponse(Response.types.OK, data ? data : {}, message);
+        Item: function (response, data, message) {
+            return Response.createDataResponse(response, Response.status.OK, data ? data : {}, message);
         },
 
         /**
          * Data Collection Response
          *
          * @constructor
-         * @param   {array} data      - the data collection
-         * @param   {*}     [message] - a custom message
-         * @returns {{}}              - the response object containing status code, message and the collection
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {array}  data      - the data collection
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code, message and the collection
          */
-        Collection: function (data, message) {
-            return Response.createDataResponse(Response.types.OK, data ? data : [], message);
+        Collection: function (response, data, message) {
+            return Response.createDataResponse(response, Response.status.OK, data ? data : [], message);
         },
 
         /**
          * No Data Result Response
          *
          * @constructor
-         * @param   {*} [message] - a custom message
-         * @returns {{}}          - the response object containing status code, message and empty array
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code, message and empty array
          */
-        NoResult: function (message) {
-            return Response.createDataResponse(Response.types.NO_RESULT, [], message);
+        NoResult: function (response, message) {
+            return Response.createDataResponse(response, Response.status.NO_RESULT, [], message);
         },
 
         /**
          * Data Not Found
          *
          * @constructor
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code, message
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code, message
          */
-        NotFound: function (message) {
-            return Response.createResponse(Response.types.NOT_FOUND, (message ? message : 'Data Not Found'));
+        NotFound: function (response, message) {
+            return Response.createResponse(response, Response.status.NOT_FOUND, (message ? message : 'Data Not Found'));
         },
 
         /**
          * Created Data Response
          *
          * @constructor
-         * @param   {{}} data      - the created data
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code, message, and created data
+         * @param   {object}       response  - the default HTTP response passed through NodeJS middleware
+         * @param   {object|array} data      - the created data
+         * @param   {*}            [message] - a custom message
+         *
+         * @returns {object}                 - the response object containing status code, message, and created data
          */
-        Created: function (data, message) {
-            return Response.createDataResponse(Response.types.CREATED, data ? data : {}, message);
+        Created: function (response, data, message) {
+            return Response.createDataResponse(response, Response.status.CREATED, data ? data : {}, message);
         },
 
         /**
          * Updated Data Response
          *
          * @constructor
-         * @param   {{}} data      - the updated data
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code, message, and updated data
+         * @param   {object}       response  - the default HTTP response passed through NodeJS middleware
+         * @param   {object|array} data      - the updated data
+         * @param   {*}            [message] - a custom message
+         *
+         * @returns {object}                 - the response object containing status code, message, and updated data
          */
-        Updated: function (data, message) {
-            return Response.createDataResponse(Response.types.UPDATED, data ? data : {}, message);
+        Updated: function (response, data, message) {
+            return Response.createDataResponse(response, Response.status.UPDATED, data ? data : {}, message);
+        },
+
+        /**
+         * Deleted Data Response
+         *
+         * @constructor
+         * @param   {object}       response  - the default HTTP response passed through NodeJS middleware
+         * @param   {object|array} data      - the updated data
+         * @param   {*}            [message] - a custom message
+         *
+         * @returns {object}                 - the response object containing status code, message, and updated data
+         */
+        Deleted: function (response, data, message) {
+            return Response.createDataResponse(response, Response.status.UPDATED, data ? data : {}, message);
         },
 
         /**
@@ -176,8 +234,8 @@ var Response = {
          *
          * @constructor
          */
-        Invalid: function (data, errors, message) {
-            return Response.createDataResponse(Response.types.INVALID, data, message);
+        Invalid: function (response, data, errors, message) {
+            return Response.createDataResponse(response, Response.status.INVALID, data, message);
         }
     },
 
@@ -192,55 +250,65 @@ var Response = {
          * Not Found Response
          *
          * @constructor
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code and message
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code and message
          */
-        NotFound: function (message) {
-            return Response.createResponse(Response.types.NOT_FOUND, message);
+        NotFound: function (response, message) {
+            return Response.createResponse(response, Response.status.NOT_FOUND, message);
         },
 
         /**
          * Unauthorized Response
          *
          * @constructor
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code and message
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code and message
          */
-        Unauthorized: function (message) {
-            return Response.createResponse(Response.types.UNAUTHORIZED, message);
+        Unauthorized: function (response, message) {
+            return Response.createResponse(response, Response.status.UNAUTHORIZED, message);
         },
 
         /**
          * Forbidden Response
          *
          * @constructor
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code and message
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code and message
          */
-        Forbidden: function (message) {
-            return Response.createResponse(Response.types.FORBIDDEN, message);
+        Forbidden: function (response, message) {
+            return Response.createResponse(response, Response.status.FORBIDDEN, message);
         },
 
         /**
          * Internal Server Error Response
          *
          * @constructor
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code and message
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code and message
          */
-        Internal: function (message) {
-            return Response.createResponse(Response.types.SERVER_ERROR, message);
+        Internal: function (response, message) {
+            return Response.createResponse(response, Response.status.SERVER_ERROR, message);
         },
 
         /**
          * Service Unavailable Response
          *
          * @constructor
-         * @param   {*}  [message] - a custom message
-         * @returns {{}}           - the response object containing status code and message
+         * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+         * @param   {*}      [message] - a custom message
+         *
+         * @returns {object}           - the response object containing status code and message
          */
-        Unavailable: function (message) {
-            return Response.createResponse(Response.types.UNAVAILABLE, message);
+        Unavailable: function (response, message) {
+            return Response.createResponse(response, Response.status.UNAVAILABLE, message);
         }
     }
 };
