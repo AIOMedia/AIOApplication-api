@@ -19,13 +19,20 @@ var TaskController = {
      */
     list: function (req, res) {
         return Task.find(function (err, tasks) {
-            if (!err) {
-                return new Response.Data.Collection(res, tasks);
-            } else {
-                console.log('Task error : %s' , err.message);
+            var response = null;
 
-                return new Response.Error.Server(res);
+            if (err) {
+                // Something goes wrong
+                response = new Response.Error.Server(res, err.message);
+            } else if (0 === tasks.length) {
+                // It's ok, but no data found
+                response = new Response.Data.NoResult(res);
+            } else {
+                // It's ok and we have data to return
+                response = new Response.Data.Collection(res, tasks);
             }
+
+            return response;
         });
     },
 
@@ -36,17 +43,20 @@ var TaskController = {
      */
     get: function (req, res) {
         return Task.findById(req.params.id, function (err, task) {
-            if (!task) {
-                return new Response.Data.NotFound(res, 'Task Not Found');
-            }
+            var response = null;
 
-            if (!err) {
-                return new Response.Data.Item(res, task);
+            if (err) {
+                // Something goes wrong
+                response = new Response.Error.Server(res, err.message);
+            } else if (!task) {
+                // Task not found
+                response = new Response.Data.NotFound(res, 'Task Not Found');
             } else {
-                console.log('Task error : %s', err.message);
-
-                return new Response.Error.Server(res);
+                // Task found
+                response = new Response.Data.Item(res, task);
             }
+
+            return response;
         });
     },
 
