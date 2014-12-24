@@ -1,33 +1,48 @@
 // Load App dependencies (packages)
-var express    = require('express');
-var path       = require('path');
-var logger     = require('morgan');
-var bodyParser = require('body-parser');
+var express        = require('express');
+var morgan         = require('morgan');
+var bodyParser     = require('body-parser');
+var methodOverride = require('method-override');
 
 // Load App dependencies (local modules)
-var dbManager     = require('./Core/Services/DatabaseManager');
+var database      = require('./Core/Database');
 var moduleManager = require('./Core/Services/ModuleManager');
 
 // Load configuration file
 var config = require('./config');
 
-// Initialize the App
+// Initialize and configure App
 var app = express();
+app.set('port', config.port || process.env.PORT     || 3000);
+app.set('env',  config.env  || process.env.NODE_ENV || 'production');
 
-// Configuration
-app.use(logger('dev'));
+// Configure environment
+switch (app.get('env')) {
+    case 'production':
+        var logger = morgan('short');
+        break;
+    case 'development':
+        var logger = morgan('dev');
+        break;
+}
+
+// Connect to DB
+database.connect(config.database.name, config.database.host, config.database.port);
+
+// Register middleware
+app.use(logger);
 app.use(bodyParser.json());
+app.use(methodOverride()); // Handle PUT and DELETE requests
+
+// TODO : check authentication
 
 // Allow cross-origin request to make the API available even when you are not on same network
 app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
 });
-
-// Start DB
-var db = new dbManager();
-db.connect();
 
 // Register modules
 if (config && config.modules) {
@@ -58,8 +73,7 @@ if (config && config.modules) {
     }
 }
 
-// Declare default routes
-var defaultRoutes = require('./routes');
-app.use('/', defaultRoutes);
-
-module.exports = app;
+// Start the server
+app.listen(app.get('port'), function() {
+    console.log('AIOMedia API running on port [' + app.get('port') + '] in [' + app.get('env') + '] environment.');
+});

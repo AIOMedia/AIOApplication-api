@@ -1,21 +1,23 @@
-var config = {
-    port: 3000,
-    db: {
-        host: 'localhost',
-        port: 27017,
-        name: 'aiomedia'
+{
+    "env" : "production",
+    "port" : 3000,
+    "security": {
+        "tokenLife" : 3600
     },
-    modules: {
-        Configuration: {
-            route: '/config'
+    "database" : {
+        "host" : "localhost",
+        "port" : 27017,
+        "name" : "aiomedia"
+    },
+    "modules" : {
+        "Configuration" : {
+            "route": "/config"
         },
-        User: {
-            route: '/user'
+        "User": {
+            "route": "/user"
         },
-        Task: {
-            route: '/task'
+        "Task": {
+            "route": "/task"
         }
     }
-};
-
-module.exports = config;
+}
