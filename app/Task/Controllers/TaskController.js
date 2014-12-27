@@ -67,23 +67,19 @@ var TaskController = {
      */
     create: function (req, res) {
         var task = new Task({
-            /*login    : req.body.login,
-            password : req.body.password,
-            firstName: req.body.firstName,
-            lastName : req.body.lastName*/
+            name: req.body.name,
+            done: req.body.done
         });
 
         return task.save(function (err) {
+            var response = null;
             if (err) {
-                console.log('Error while saving task : ' + err);
-
-                return res.json({ error: err });
+                response = new Response.Error.Internal(res, err);
             } else {
-                console.log('Task Created');
-                res.statusCode = 201;
-
-                return res.json({ data: task });
+                response = new Response.Data.Created(res, task, 'Task Created');
             }
+
+            return response;
         });
     },
 
@@ -96,29 +92,22 @@ var TaskController = {
         return Task.findById(req.params.id, function (err, task) {
             // Task not found
             if (!task) {
-                res.statusCode = 404;
-                return res.json({ error: 'Task Not Found' });
+                return new Response.Data.NotFound(res, 'Task Not Found');
             }
 
             // Update Task properties
-            /*if (req.body.login) {
-                user.login = req.body.login;
+            if (req.body.name) {
+                task.name = req.body.name;
             }
-            if (req.body.password) {
-                user.password = req.body.password;
+
+            if (typeof req.body.done !== 'undefined') {
+                task.done = req.body.done;
             }
-            if (req.body.firstName) {
-                user.firstName = req.body.firstName;
-            }
-            if (req.body.lastName) {
-                user.lastName  = req.body.lastName;
-            }*/
 
             // Save to DB
             return task.save(function (err) {
                 if (!err) {
-                    console.log('Task Updated');
-                    return res.json({ data: task });
+                    return new Response.Data.Updated(res, task, 'Task Updated');
                 } else {
                     console.log('Internal error(%d): %s', res.statusCode, err.message);
 

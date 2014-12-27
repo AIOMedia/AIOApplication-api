@@ -19,13 +19,15 @@ var UserController = {
      */
     list: function (req, res) {
         return User.find(function (err, users) {
-            if (!err) {
-                return new Response.Data.Collection(res, users);
-            } else {
-                console.log('User error : %s', err.message);
+            var response = null;
 
-                return new Response.Error.Internal(res);
+            if (!err) {
+                response = new Response.Data.Collection(res, users);
+            } else {
+                response = new Response.Error.Internal(res, err.message);
             }
+
+            return response;
         });
     },
 
@@ -36,17 +38,17 @@ var UserController = {
      */
     get: function (req, res) {
         return User.findById(req.params.id, function (err, user) {
-            if (!user) {
-                return new Response.Data.NotFound(res, 'User Not Found');
-            }
+            var response = null;
 
-            if (!err) {
-                return new Response.Data.Item(res, user);
+            if (err) {
+                response = new Response.Error.Internal(res, err.message);
+            } else if (!user) {
+                response = new Response.Data.NotFound(res, 'User Not Found');
             } else {
-                console.log('User error : %s', err.message);
-
-                return new Response.Error.Internal(res);
+                response = new Response.Data.Item(res, user);
             }
+
+            return response;
         });
     },
 
@@ -64,13 +66,15 @@ var UserController = {
         });
 
         return user.save(function (err) {
-            if (err) {
-                console.log('User error : %s', err);
+            var response = null;
 
-                return new Response.Error.Internal(res, 'User Not Saved');
+            if (err) {
+                response = new Response.Error.Internal(res, err);
             } else {
-                return new Response.Data.Created(res, user, 'User Created');
+                response = new Response.Data.Created(res, user, 'User Created');
             }
+
+            return response;
         });
     },
 

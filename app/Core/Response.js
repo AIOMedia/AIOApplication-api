@@ -38,19 +38,20 @@ var Response = {
     /**
      * Create a basic response containing a status and message
      *
-     * @param {object}    response  - the default HTTP response passed through NodeJS middleware
-     * @param {object}    status    - a status type listed in Response.types OR an object containing a code (default: 200) and message property
-     * @param {*}         [message] - a custom message
+     * @param   {object} response  - the default HTTP response passed through NodeJS middleware
+     * @param   {object} status    - a status type listed in Response.types OR an object containing a code (default: 200) and message property
+     * @param   {*}      [message] - a custom message
+     * @param   {array}  [errors]  - a list of occurred errors
      *
      * @returns {object}
      */
-    createResponse: function (response, status, message) {
+    createResponse: function (response, status, message, errors) {
         if (!status) {
             status = this.types.OK;
         }
 
         // Create body of the response
-        var res = this.buildResponseBody(status, message);
+        var res = this.buildResponseBody(status, message, errors);
 
         // Set Node response status
         response.statusCode =  res.status.code;
@@ -61,20 +62,21 @@ var Response = {
     /**
      * Create a response containing a status
      *
-     * @param {object}           response  - the default HTTP response passed through NodeJS middleware
-     * @param {object}           status    - a status type listed in Response.types OR an object containing a code (default: 200) and message property
-     * @param {array|object}     data      - a data item or collection
-     * @param {*}                [message] - a custom message
+     * @param   {object}       response  - the default HTTP response passed through NodeJS middleware
+     * @param   {object}       status    - a status type listed in Response.types OR an object containing a code (default: 200) and message property
+     * @param   {array|object} data      - a data item or collection
+     * @param   {*}            [message] - a custom message
+     * @param   {array}        [errors]  - a list of occurred errors
      *
      * @returns {object}
      */
-    createDataResponse: function (response, status, data, message) {
+    createDataResponse: function (response, status, data, message, errors) {
         if (!status) {
             status = this.types.OK;
         }
 
         // Create body of the response
-        var res = this.buildResponseBody(status, message, data ? data : []);
+        var res = this.buildResponseBody(status, message, data ? data : [], errors);
 
         // Set Node response status
         response.statusCode =  res.status.code;
@@ -85,11 +87,12 @@ var Response = {
     /**
      * Create the body of the response
      */
-    buildResponseBody: function (status, message, data) {
+    buildResponseBody: function (status, message, data, errors) {
         var response = {
             status: {
                 code:    status.code ? status.code : 200,
-                message: message ? message : (status.message ? status.message : '')
+                message: message     ? message     : (status.message ? status.message : ''),
+                errors:  errors      ? errors      : []
             }
         };
 
@@ -232,10 +235,12 @@ var Response = {
         /**
          * Invalid Data Response
          *
+         * @param   {array}  [errors]  - a list of occurred errors
+         *
          * @constructor
          */
-        Invalid: function (response, data, errors, message) {
-            return Response.createDataResponse(response, Response.status.INVALID, data, message);
+        Invalid: function (response, data, message, errors) {
+            return Response.createDataResponse(response, Response.status.INVALID, data, message, errors);
         }
     },
 
@@ -291,11 +296,12 @@ var Response = {
          * @constructor
          * @param   {object} response  - the default HTTP response passed through NodeJS middleware
          * @param   {*}      [message] - a custom message
+         * @param   {array}  [errors]  - a list of occurred errors
          *
          * @returns {object}           - the response object containing status code and message
          */
-        Internal: function (response, message) {
-            return Response.createResponse(response, Response.status.SERVER_ERROR, message);
+        Internal: function (response, message, errors) {
+            return Response.createResponse(response, Response.status.SERVER_ERROR, message, errors);
         },
 
         /**

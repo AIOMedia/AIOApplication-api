@@ -39,8 +39,9 @@ app.use(methodOverride()); // Handle PUT and DELETE requests
 // Allow cross-origin request to make the API available even when you are not on same network
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
 
@@ -52,6 +53,8 @@ if (config && config.modules) {
     for (var i = 0; i < registeredModules.length; i++) {
         var registeredModule = registeredModules[i];
         var registeredConfig = config.modules[registeredModule];
+
+        console.log('Registering module [' + registeredModule + ']');
 
         // Register module
         mod.register(registeredModule, registeredConfig);
