@@ -13,12 +13,13 @@ var Task = require('../Models/Task');
 
 var TaskController = {
     /**
-     * List all Tasks
+     * List all Tasks ordered by `order` field
+     *
      * @param {Object} req HTTP request object
      * @param {Object} res HTTP response object
      */
     list: function (req, res) {
-        return Task.find(function (err, tasks) {
+        return Task.find({}, null, { sort: { position: 1 } }, function (err, tasks) {
             var response = null;
 
             if (err) {
@@ -38,6 +39,7 @@ var TaskController = {
 
     /**
      * Get a specific Task
+     *
      * @param {Object} req HTTP request object
      * @param {Object} res HTTP response object
      */
@@ -62,6 +64,7 @@ var TaskController = {
 
     /**
      * Create a new Task
+     *
      * @param {Object} req HTTP request object
      * @param {Object} res HTTP response object
      */
@@ -85,6 +88,7 @@ var TaskController = {
 
     /**
      * Update an existing Task
+     *
      * @param {Object} req HTTP request object
      * @param {Object} res HTTP response object
      */
@@ -127,6 +131,7 @@ var TaskController = {
 
     /**
      * Delete an existing Task
+     *
      * @param {Object} req HTTP request object
      * @param {Object} res HTTP response object
      */
