@@ -24,7 +24,7 @@ var TaskController = {
 
             if (err) {
                 // Something goes wrong
-                response = new Response.Error.Server(res, err.message);
+                response = new Response.Error.Internal(res, err.message);
             } else if (0 === tasks.length) {
                 // It's ok, but no data found
                 response = new Response.Data.NoResult(res);
@@ -49,7 +49,7 @@ var TaskController = {
 
             if (err) {
                 // Something goes wrong
-                response = new Response.Error.Server(res, err.message);
+                response = new Response.Error.Internal(res, err.message);
             } else if (!task) {
                 // Task not found
                 response = new Response.Data.NotFound(res, 'Task Not Found');

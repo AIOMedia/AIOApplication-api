@@ -18,6 +18,12 @@
         },
         "Task": {
             "route" : "/task"
+        },
+        "File": {
+            "route" : "/file"
+        },
+        "Music": {
+            "route" : "/music"
         }
     }
 }

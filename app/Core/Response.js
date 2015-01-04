@@ -92,7 +92,7 @@ var Response = {
             status: {
                 code:    status.code ? status.code : 200,
                 message: message     ? message     : (status.message ? status.message : ''),
-                errors:  errors      ? errors      : []
+                errors:  errors      ? errors      : {}
             }
         };
 
@@ -223,7 +223,7 @@ var Response = {
          *
          * @constructor
          * @param   {object}       response  - the default HTTP response passed through NodeJS middleware
-         * @param   {object|array} data      - the updated data
+         * @param   {object|array} data      - the deleted data
          * @param   {*}            [message] - a custom message
          *
          * @returns {object}                 - the response object containing status code, message, and updated data

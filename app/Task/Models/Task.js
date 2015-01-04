@@ -25,7 +25,6 @@ var TaskSchema = new Schema({
 
 // Hook : pre-save
 TaskSchema.pre('save', function (next) {
-    console.log('coucou');
     var self = this;
     if (self.isModified('done') && self.done) {
         // Task is mark has down => store date and time when it has occurred
