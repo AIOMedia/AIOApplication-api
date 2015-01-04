@@ -126,6 +126,8 @@ CRUDController.prototype.create = function (req, res) {
  * @param {Object} res HTTP response object
  */
 CRUDController.prototype.update = function (req, res) {
+    var ctrl = this;
+
     return this.dataModel.findById(req.params.id, function (err, item) {
         var response = null;
 
@@ -137,7 +139,7 @@ CRUDController.prototype.update = function (req, res) {
             response = new Response.Data.NotFound(res);
         } else {
             // Update found Item
-            this.populate(item, req.body); // Populate the data with the request
+            ctrl.populate(item, req.body); // Populate the data with the request
 
             // Save to DB
             response = item.save(function (err) {
