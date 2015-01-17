@@ -14,7 +14,7 @@ var Response = require('../Response');
  * @param {string} dataModel - relative path to model file from app root directory (default root: app/)
  * @constructor
  */
-var CRUDController = function (dataModelPath) {
+var CRUDController = function CRUDController (dataModelPath) {
     if (!dataModelPath) {
         // There is no sense to have a crud without underlying data
         console.error('CRUD controller requires a data model.');

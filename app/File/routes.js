@@ -12,19 +12,28 @@ var CRUDController = require('../Core/Controllers/CRUDController');
 var fileCtrl = new CRUDController('File/Models/File');
 
 fileCtrl.upload = function (req, res) {
-    var tempPath = req.files.file.path;
-    var targetPath = path.resolve('./upload/' + req.files.file.name);
+    var store = function (file) {
+        var tempPath = file.path;
+        var targetPath = path.resolve('./upload/' + file.name);
 
-    fs.rename(tempPath, targetPath, function(err) {
-        if (err) {
-            throw err;
-        }
+        fs.rename(tempPath, targetPath, function(err) {
+            if (err) {
+                throw err;
+            }
 
-        res.writeHead(200, {'Content-Type': req.files.file.type });
-        res.setEncoding('binary');
-        // stream the file
-        fs.createReadStream(targetPath, 'utf-8').pipe(res);
-    });
+            fs.readFile(targetPath, function(err, data) {
+                if (err) throw err; // Fail if the file can't be read.
+
+                res.writeHead(200, {'Content-Type': file.type });
+                res.end(new Buffer(data).toString('base64')); // Send the file data to the browser.
+            });
+        });
+    };
+
+    if (req.files && req.files.file) {
+        var toUpload = req.files.file;
+        store(toUpload);
+    }
 };
 
 /* LIST */

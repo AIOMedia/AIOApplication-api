@@ -19,7 +19,8 @@
     "url": "https://github.com/AIOMedia/AIOApplication-api/issues"
   },
   "scripts": {
-    "start": "node ./app/app"
+    "start": "node ./app/app",
+    "start-dev": "nodemon ./app/app"
   },
   "dependencies": {
     "body-parser": "~1.10.0",
